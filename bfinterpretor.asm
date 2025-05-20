@@ -14,6 +14,16 @@ section .bss ; used to declare non-const variables
     ; dArr resd 100 ; 100 element double array
     ; qArr resq 200 ; 200 element quad array
 
+; define section for frequently used hardcoded values
+%define SYS_WRITE_64 1
+%define SYS_READ_64 0
+%define SYS_EXIT_64 60
+
+%define STDIN 0
+%define STDOUT 1
+%define STDERR 2
+
+
     ; function calling convention
     ; first 6 parameters in RDI, RSI, RDX, RCX (R10 if system call), R8, R9
     ; return value in RAX (on system call, error RAX = -errno)
@@ -34,10 +44,10 @@ section .text
         jmp exitError
 
     exitError:
-        mov rax, 1
-        mov rdi, 2
+        mov rax, SYS_WRITE_64
+        mov rdi, STDERR
         syscall
-        mov rax, 60
+        mov rax, SYS_EXIT_64
         mov rdi, 1
         syscall
 
@@ -48,19 +58,24 @@ section .text
         jne exitFileError ; exits if argument count != 2
         ; mov rdi, [rsp + 8]    ; we could access the arguments like this without modifying the stack, [rsp] being the name of the program
                                 ; [rsp + 8] is the first argument provided by user, [rsp + 16] the second, [rsp + 24]...
+
         pop rdi ; get the first argument, in a program first argument is the name of the program
         pop rdi ; get the second argument on the stack, provided by user. The stack is now empty
+
         call my_strlen ; call strlen
+
         mov rdx, rax ; get length from my_strlen in rdx
         mov rsi, rdi ; put string contained in rdi in rsi
-        mov rax, 1 ; syscall 1 for write
-        mov rdi, 1 ; output fd
+        mov rax, SYS_WRITE_64
+        mov rdi, STDOUT
         syscall
 
         mov rdi, rsi ; puts string back in rdi to call atoi
         call my_atoi
         cmp rax, -1
         je exitInputError
+
+    _exit:
         mov rdi, rax ; exit code based on input
-        mov rax, 60 ; syscall 60 for exiting correctly
+        mov rax, SYS_EXIT_64 ; syscall 60 for exiting correctly
         syscall

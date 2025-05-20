@@ -1,7 +1,8 @@
 bits 64
 section .data ; used to declare const variables
     noFileError: db "ERROR no file detected", 10 ; string to print, 10 stands for '\n'
-    noFileErrorLen: equ $-noFileError ; gives length of string, needed for prints
+    noFileErrorLen: equ $-noFileError   ; $ represent the current address in the memory, meaning noFileErrorLen
+    ; $-noFileError tells the compiler to compute the length between noFileError and noFileErrorLen, giving noFileErrorLen its value
 
 section .bss ; used to declare non-const variables
     bfarray resb 30000
@@ -17,7 +18,8 @@ section .bss ; used to declare non-const variables
 
 section .text
     global _start
-    extern my_strlen
+    extern my_strlen ; returns value in rax, string argument in rdi, doesn't modifies anything else
+    extern my_atoi ; returns value in rax, string argument in rdi, modifies rsi
 
     exitFileError:
         mov rax, 1 ; syscall 1 for write
@@ -30,15 +32,19 @@ section .text
         syscall
 
     _start: ; checks if argument count is equal to 2
-        mov rdi, [rsp] ; loads value at top of stack into rdi, when program start, it's the argument count.
+        ; mov rdi, [rsp] ; rsp is the stack pointer, [rsp] can check the top value, this instruction puts the top value into rdi
+        pop rdi ; pops value at top of stack into rdi, when program start, it's the argument count.
         cmp rdi, 2
-        jl exitFileError ; exists if argument count != 2
-
-        mov rsi, [rsp + 16] ; to access the arguments, [rsp] is still used but with + 8, + 16..etc, [rsp + 8 == argv[0]]
+        jne exitFileError ; exits if argument count != 2
+        ; mov rdi, [rsp + 8]    ; we could access the arguments like this without modifying the stack, [rsp] being the name of the program
+                                ; [rsp + 8] is the first argument provided by user, [rsp + 16] the second, [rsp + 24]...
+        pop rdi ; get the first argument, in a program first argument is the name of the program
+        pop rdi ; get the second argument on the stack, provided by user. The stack is now empty
         call my_strlen ; call strlen
+        mov rdx, rax ; get length from my_strlen in rdx
+        mov rsi, rdi ; put string contained in rdi in rsi
         mov rax, 1 ; syscall 1 for write
         mov rdi, 1 ; output fd
-        mov rdx, rcx ; get rsi length to print it
         syscall
 
         mov rax, 60 ; syscall 60 for exiting correctly

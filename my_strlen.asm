@@ -3,11 +3,11 @@ global my_strlen
 section .text
 
     my_strlen:
-            xor rcx, rcx
+            xor rax, rax
         .strlen_loop:
-            cmp byte [rsi + rcx], 0
+            cmp byte [rdi + rax], 0
             je .done
-            inc rcx
+            inc rax
             jmp .strlen_loop
         .done:
             ret

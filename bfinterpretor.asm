@@ -3,6 +3,8 @@ section .data ; used to declare const variables
     noFileError: db "ERROR no file detected", 10 ; string to print, 10 stands for '\n'
     noFileErrorLen: equ $-noFileError   ; $ represent the current address in the memory, meaning noFileErrorLen
     ; $-noFileError tells the compiler to compute the length between noFileError and noFileErrorLen, giving noFileErrorLen its value
+    invalidInputError: db "ERROR invalid input", 10
+    invalidInputErrorLen: equ $-invalidInputError
 
 section .bss ; used to declare non-const variables
     bfarray resb 30000
@@ -22,13 +24,21 @@ section .text
     extern my_atoi ; returns value in rax, string argument in rdi, modifies rsi
 
     exitFileError:
-        mov rax, 1 ; syscall 1 for write
-        mov rdi, 2 ; file descriptor, 2 for error
         mov rsi, noFileError ; noFileError variable to print
         mov rdx, noFileErrorLen ; noFileError variable length
+        jmp exitError
+
+    exitInputError:
+        mov rsi, invalidInputError
+        mov rdx, invalidInputErrorLen
+        jmp exitError
+
+    exitError:
+        mov rax, 1
+        mov rdi, 2
         syscall
-        mov rax, 60 ; syscall 60 for exit
-        mov rdi, 1 ; error code
+        mov rax, 60
+        mov rdi, 1
         syscall
 
     _start: ; checks if argument count is equal to 2
@@ -47,6 +57,10 @@ section .text
         mov rdi, 1 ; output fd
         syscall
 
+        mov rdi, rsi ; puts string back in rdi to call atoi
+        call my_atoi
+        cmp rax, -1
+        je exitInputError
+        mov rdi, rax ; exit code based on input
         mov rax, 60 ; syscall 60 for exiting correctly
-        xor rdi, rdi ; exit code (0)
         syscall

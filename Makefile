@@ -4,7 +4,8 @@
 ##
 ##
 
-SRC		=	bfinterpretor.asm
+SRC		=	bfinterpretor.asm \
+			my_strlen.asm
 
 OBJS	=	$(SRC:.asm=.o)
 

@@ -4,10 +4,12 @@ section .text
 
     my_strlen:
             xor rax, rax
-        .strlen_loop:
+
+        strlen_loop:
             cmp byte [rdi + rax], 0
-            je .done
+            je done
             inc rax
-            jmp .strlen_loop
-        .done:
+            jmp strlen_loop
+
+        done:
             ret

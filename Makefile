@@ -4,11 +4,11 @@
 ##
 ##
 
-SRC		=	bfinterpretor.asm \
-			my_strlen.asm \
-			my_atoi.asm \
-			exitErrors.asm \
-			readFile.asm
+SRC		=	src/bfinterpretor.asm \
+			src/my_strlen.asm \
+			src/my_atoi.asm \
+			src/exitErrors.asm \
+			src/readFile.asm
 
 OBJS	=	$(SRC:.asm=.o)
 

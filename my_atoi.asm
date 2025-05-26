@@ -3,6 +3,7 @@ global my_atoi
 section .text
 
 my_atoi:
+    push rsi
     xor rax, rax
 
 convert:
@@ -27,4 +28,5 @@ error:
     mov rax, -1
 
 done:
+    pop rsi
     ret

@@ -14,6 +14,9 @@ section .data ; used to declare const variables
     invalidReadError: db "ERROR could not read from file", 10
     invalidReadErrorLen: equ $-invalidReadError
 
+    allocateError: db "ERROR could not allocate memory for filecontent", 10
+    allocateErrorLen: equ $-allocateError
+
 %define SYS_WRITE_64 1
 %define SYS_EXIT_64 60
 %define STDERR 2
@@ -24,6 +27,7 @@ section .text
     global exitInvalidFileError
     global exitFileEmptyError
     global exitInvalidReadError
+    global exitAllocateError
 
     exitArgumentsError:
         mov rsi, wrongArgumentsError ; wrongArgumentsError variable to print
@@ -48,6 +52,11 @@ section .text
     exitInvalidReadError:
         mov rsi, invalidReadError
         mov rdx, invalidReadErrorLen
+        jmp exitError
+
+    exitAllocateError:
+        mov rsi, allocateError
+        mov rdx, allocateErrorLen
         jmp exitError
 
     exitError:

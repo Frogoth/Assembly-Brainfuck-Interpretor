@@ -1,5 +1,4 @@
 section .bss
-    filecontent resb 4096
     fd resq 1
     filesize resq 1
     statbuff resb 144
@@ -14,9 +13,18 @@ section .bss
 %define STDOUT 1
 %define STDERR 2
 
+; allocation values
+%define SYS_MMAP     9
+%define PROT_READ    1
+%define PROT_WRITE   2
+%define MAP_PRIVATE  2
+%define MAP_ANONYMOUS 0x20
+
+
 section .text
     global openFile
     global statFile
+    global allocateBuffer
     global readFile
     global closeFile
     global printFile
@@ -25,6 +33,8 @@ section .text
     extern exitInvalidFileError
     extern exitFileEmptyError
     extern exitInvalidReadError
+    extern exitAllocateError
+    extern filecontent
 
     openFile: ; modifies rsi and rdx, puts fd in rax as return value
         mov rax, SYS_OPEN_64 ; syscall to open file, filename is loaded in rdi with pop rdi
@@ -54,10 +64,26 @@ section .text
         jle exitFileEmptyError
         ret
 
+    allocateBuffer:
+        mov rdi, 0 ; let kernel choose where to allocate memory
+        mov rsi, [filesize]
+        mov rdx, PROT_READ | PROT_WRITE
+        mov r10, MAP_PRIVATE | MAP_ANONYMOUS
+        mov r8, -1
+        mov r9, 0
+        mov rax, SYS_MMAP
+        syscall
+
+        cmp rax, -4095 ; stores pointer to buffer in rax, or -1 on error
+        jae exitAllocateError
+        mov [filecontent], rax ; store pointer to filecontent
+        xor rax, rax
+        ret
+
     readFile:
         mov rax, SYS_READ_64
         mov rdi, [fd]
-        mov rsi, filecontent ; sets rsi to filecontent pointer to fill filecontent
+        mov rsi, [filecontent] ; sets rsi to filecontent pointer to fill filecontent
         mov rdx, [filesize]
         syscall ; fd is already stored in rdi and the file size is stored in rdx
 
@@ -75,7 +101,7 @@ section .text
     printFile:
         mov rax, SYS_WRITE_64
         mov rdi, STDOUT
-        mov rsi, filecontent
+        mov rsi, [filecontent]
         mov rdx, [filesize]
         syscall
         ret

@@ -24,6 +24,7 @@ section .text
 
     extern openFile
     extern statFile
+    extern allocateBuffer
     extern readFile
     extern closeFile
     extern printFile
@@ -42,6 +43,7 @@ section .text
 
         call openFile
         call statFile
+        call allocateBuffer
         call readFile
         call closeFile
         call printFile

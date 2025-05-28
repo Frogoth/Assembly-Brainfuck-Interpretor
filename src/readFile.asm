@@ -1,6 +1,7 @@
 section .bss
     fd resq 1
-    filesize resq 1
+    global filesize
+    filesize: resq 1
     statbuff resb 144
 
 %define SYS_READ_64 0
@@ -28,6 +29,7 @@ section .text
     global readFile
     global closeFile
     global printFile
+    global checkFileValidity
 
     extern exitInputError
     extern exitInvalidFileError
@@ -35,6 +37,8 @@ section .text
     extern exitInvalidReadError
     extern exitAllocateError
     extern filecontent
+    extern exitClosingMissingLoopError
+    extern exitUnclosedLoopError
 
     openFile: ; modifies rsi and rdx, puts fd in rax as return value
         mov rax, SYS_OPEN_64 ; syscall to open file, filename is loaded in rdi with pop rdi
@@ -105,3 +109,37 @@ section .text
         mov rdx, [filesize]
         syscall
         ret
+
+    checkFileValidity:
+        mov rsi, [filecontent] ; original pointer to the buffer
+        mov rdi, [filesize]
+        xor rcx, rcx ; used to iterate over the file buffer
+        xor rdx, rdx ; rdx will be the loop flag, if the file ends and rdx == 1, a loop isn't closed, if a loop ends but the flag == 0, we cannot close an unexisting loop
+
+    fileLoop:
+        cmp rdi, rcx
+        jge done
+        jmp checkLoop
+
+    done:
+        cmp rdx, 0
+        jnz exitUnclosedLoopError
+        xor rax, rax
+        ret
+
+    checkLoop:
+        cmp [rsi + rcx], 0x2B
+        je checkStartOfLoop
+        cmp [rsi + rcx], 0x2D
+        je checkEndOfLoop
+        jmp fileLoop
+
+    checkStartOfLoop:
+        incr rdx
+        jmp fileLoop
+
+    checkEndOfLoop:
+        cmp rdx, 0
+        jz exitClosingMissingLoopError
+        decr rdx
+        jmp fileLoop

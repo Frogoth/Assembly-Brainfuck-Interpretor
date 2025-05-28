@@ -17,6 +17,18 @@ section .data ; used to declare const variables
     allocateError: db "ERROR could not allocate memory for filecontent", 10
     allocateErrorLen: equ $-allocateError
 
+    unknownSymbolError: db "ERROR symbol not recognized"
+    unknownSymbolErrorLen: equ $-unknownSymbolError
+
+    closingMissingLoopError: db "ERROR closing a non existing loop, cannot proceed", 10
+    closingMissingLoopErrorLen: equ $-closingMissingLoopError
+
+    unclosedLoopError: db "ERROR unclosed loop at end of file, cannot proceed", 10
+    unclosedLoopErrorLen: equ $-unclosedLoopError
+
+    outOfBoundPointer: db "ERROR pointer went out of bound", 10
+    outOfBoundPointerLen: equ $-outOfBoundPointer
+
 %define SYS_WRITE_64 1
 %define SYS_EXIT_64 60
 %define STDERR 2
@@ -28,6 +40,10 @@ section .text
     global exitFileEmptyError
     global exitInvalidReadError
     global exitAllocateError
+    global exitUnknownSymbolError
+    global exitClosingMissingLoopError
+    global exitUnclosedLoopError
+    global exitOutOfBoundPointer
 
     exitArgumentsError:
         mov rsi, wrongArgumentsError ; wrongArgumentsError variable to print
@@ -57,6 +73,26 @@ section .text
     exitAllocateError:
         mov rsi, allocateError
         mov rdx, allocateErrorLen
+        jmp exitError
+
+    exitUnknownSymbolError:
+        mov rsi, unknownSymbolError
+        mov rdx, unknownSymbolErrorLen
+        jmp exitError
+
+    exitClosingMissingLoopError:
+        mov rsi, closingMissingLoopError
+        mov rdx, closingMissingLoopErrorLen
+        jmp exitError
+
+    exitUnclosedLoopError:
+        mov rsi, unclosedLoopError
+        mov rdx, unclosedLoopErrorLen
+        jmp exitError
+
+    exitOutOfBoundPointer:
+        mov rsi, outOfBoundPointer
+        mov rdx, outOfBoundPointerLen
         jmp exitError
 
     exitError:

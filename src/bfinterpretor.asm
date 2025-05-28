@@ -1,7 +1,8 @@
 bits 64
 
 section .bss
-    bfarray resb 30000
+    global bfarray
+    bfarray: resb 30000
 
     global filecontent
     filecontent: resq 1
@@ -28,6 +29,9 @@ section .text
     extern readFile
     extern closeFile
     extern printFile
+    extern checkFileValidity
+
+    extern interpretFile
 
     extern my_strlen ; returns value in rax, string argument in rdi, doesn't modifies anything else
     extern my_atoi ; returns val bue in rax, string argument in rdi, should not modify rsi as it's pushed then popped from the stack
@@ -46,7 +50,9 @@ section .text
         call allocateBuffer
         call readFile
         call closeFile
-        call printFile
+        call checkFileValidity
+
+        call interpretFile
 
     _exit:
         mov rdi, 0 ; exit code based on input

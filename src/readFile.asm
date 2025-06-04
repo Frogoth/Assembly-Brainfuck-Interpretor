@@ -128,18 +128,18 @@ section .text
         ret
 
     checkLoop:
-        cmp [rsi + rcx], 0x2B
+        cmp byte [rsi + rcx], 0x5B ; compare current character with [
         je checkStartOfLoop
-        cmp [rsi + rcx], 0x2D
+        cmp byte [rsi + rcx], 0x5D ; compare current character with ]
         je checkEndOfLoop
         jmp fileLoop
 
     checkStartOfLoop:
-        incr rdx
+        inc rdx
         jmp fileLoop
 
     checkEndOfLoop:
-        cmp rdx, 0
+        cmp rdx, 0 ; check if loop began, if rdx == 0, the loop didn't begin
         jz exitClosingMissingLoopError
-        decr rdx
+        dec rdx
         jmp fileLoop
